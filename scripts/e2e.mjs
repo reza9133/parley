@@ -245,6 +245,7 @@ async function send(who, fn, args, { value = 0n, label = fn, expectFail = false,
         shownRaw = true;
         console.log(`  note: the receipt has no readable result, so this transaction counts as failed. Receipt: ${out.raw}`);
       }
+      if (!out.ok && !expectFail) console.log(`  details of the failed ${label}: ${out.detail ?? out.raw ?? ""}`);
       step.receipt = receipt;
     } catch (err) {
       step.ok = false; // the node refused it before it was even sent
@@ -296,10 +297,17 @@ async function openDeal(who, o = {}) {
     o.bondBps ?? BOND_BPS,
     Boolean(o.pinned),
   ];
+  const before = (await stats()).total;
   const s = await mustWork(who, "open_deal", args, { value: o.price ?? PRICE, label: o.label ?? "open_deal" });
   if (!s.ok) return null;
+  for (let i = 0; i < 30; i++) {
+    if ((await stats()).total > before) break;
+    await sleep(2000);
+  }
   const mine = await read("deals_of", [who.address, 0, 1]);
-  return mine[0]?.id ?? null;
+  const id = mine[0]?.id ?? null;
+  check("the new deal is the newest one of the account", id !== null && id >= before, `id ${id}, deals before ${before}`);
+  return id !== null && id >= before ? id : null;
 }
 const take = (id) => mustWork(provider, "accept_deal", [id], { value: BOND });
 const deliver = (id, url = WORK_URL) => mustWork(provider, "deliver", [id, url, "Delivered by the live test"]);
