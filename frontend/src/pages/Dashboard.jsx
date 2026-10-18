@@ -241,7 +241,7 @@ export default function Dashboard() {
               </div>
             </div>
             <a
-              href={`https://studio.genlayer.com/address/${mockStats.contractAddress}`}
+              href={`https://explorer-studio.genlayer.com/address/${mockStats.contractAddress}`}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary"
