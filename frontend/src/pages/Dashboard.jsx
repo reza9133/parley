@@ -3,7 +3,8 @@ import { motion } from 'framer-motion'
 import { LayoutDashboard, TrendingUp, Briefcase, Scale, Clock, ArrowRight, Activity, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
-import { mockDeals, volumeData, mockStats, STATES } from '@data/mockData'
+import { STATES } from '@data/mockData'
+import useDealsStore from '@store/useDealsStore'
 import { useAnimatedCounter } from '@hooks/useAnimatedCounter'
 import DealCard from '@components/deals/DealCard'
 import useWalletStore from '@store/useWalletStore'
@@ -63,6 +64,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function Dashboard() {
   const { isConnected, connect, shortAddress } = useWalletStore()
+  const { deals: mockDeals, stats: mockStats, volumeData } = useDealsStore()
   const [activeTab, setActiveTab] = useState('volume')
 
   const stateCounts = Object.entries(STATES).map(([k, v]) => ({

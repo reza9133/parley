@@ -1,3 +1,5 @@
+import useDealsStore from '@store/useDealsStore'
+import { LIVE, send, parseGen, humanError } from '@/lib/chain'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Check, Plus, Minus, Info, Zap, AlertCircle } from 'lucide-react'
@@ -102,12 +104,41 @@ export default function CreateDeal() {
     if (form.criteria.length > 1) set('criteria', form.criteria.filter((_, j) => j !== i))
   }
 
+  const [error, setError] = useState(null)
+  const { address } = useWalletStore()
+  const refreshDeals = useDealsStore(s => s.refreshDeals)
+
   const handleSubmit = async () => {
     setSubmitting(true)
-    await new Promise(r => setTimeout(r, 2500))
-    setSubmitting(false)
-    setSubmitted(true)
-    setTimeout(() => navigate('/deals'), 2000)
+    setError(null)
+    try {
+      if (!LIVE) {
+        await new Promise(r => setTimeout(r, 1500))
+      } else {
+        const criteria = form.criteria.map(c => c.trim()).filter(Boolean)
+        if (form.title.trim().length < 4) throw new Error('The title needs at least 4 characters.')
+        if (criteria.length < 1) throw new Error('Add at least one acceptance criterion.')
+        const day = 86400
+        await send(address, 'open_deal', [
+          form.title.trim(),
+          form.scope.trim(),
+          criteria.join('\n'),
+          form.provider.trim(),
+          Math.round(form.offerDays * day),
+          Math.round(form.workDays * day),
+          Math.round(form.reviewDays * day),
+          form.bondBps,
+          Boolean(form.pinned),
+        ], parseGen(form.price))
+        await refreshDeals()
+      }
+      setSubmitted(true)
+      setTimeout(() => navigate('/deals'), 2000)
+    } catch (e) {
+      setError(humanError(e))
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (!isConnected) {
@@ -409,6 +440,11 @@ export default function CreateDeal() {
             </button>
           )}
         </div>
+        {error && (
+          <div style={{ marginTop: 16, display: 'flex', gap: 8, alignItems: 'center', color: 'var(--state-disputed)', fontSize: 13 }}>
+            <AlertCircle size={14} /> {error}
+          </div>
+        )}
       </div>
     </div>
   )

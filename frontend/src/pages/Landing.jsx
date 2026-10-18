@@ -5,8 +5,9 @@ import { ArrowRight, Shield, Zap, Globe, Lock, Scale, Brain, Star, CheckCircle, 
 import { useAnimatedCounter } from '@hooks/useAnimatedCounter'
 import { useScrollReveal } from '@hooks/useScrollReveal'
 import MochiCanvas from '@components/3d/MochiCanvas'
+import MochiGallery from '@components/ui/MochiGallery'
 import DealCard from '@components/deals/DealCard'
-import { mockDeals, mockStats } from '@data/mockData'
+import useDealsStore from '@store/useDealsStore'
 import { ParleySpinner, MochiSpinner, HexSpinner, CourtSpinner, OrbitSpinner } from '@components/spinners/Spinners'
 
 // ============================================================
@@ -136,7 +137,8 @@ export default function Landing() {
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0])
   const heroY = useTransform(scrollY, [0, 400], [0, -80])
 
-  const recentDeals = mockDeals.slice(0, 3)
+  const liveDeals = useDealsStore(s => s.deals)
+  const recentDeals = liveDeals.slice(0, 3)
 
   return (
     <div style={{ minHeight: '100vh', overflowX: 'hidden' }}>
@@ -591,6 +593,8 @@ export default function Landing() {
           </div>
         </motion.div>
       </section>
+
+      <MochiGallery />
 
       <style>{`
         @keyframes pulse {

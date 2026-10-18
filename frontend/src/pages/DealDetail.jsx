@@ -4,8 +4,9 @@ import {
   ArrowLeft, Clock, Shield, Pin, ExternalLink, Scale, AlertTriangle,
   CheckCircle, XCircle, FileText, MessageSquare, Star, Copy, Check
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useDealsStore from '@store/useDealsStore'
+import DealActions from '@components/deals/DealActions'
 import { STATES } from '@data/mockData'
 import StateFlow from '@components/deals/StateFlow'
 import { ParleySpinner } from '@components/spinners/Spinners'
@@ -116,7 +117,13 @@ function CriteriaItem({ criterion, ruling, index }) {
 export default function DealDetail() {
   const { id } = useParams()
   const deal = useDealsStore(s => s.getDeal(id))
+  const { loadDeal, loaded } = useDealsStore()
+  useEffect(() => { loadDeal(id) }, [id])
   const [tab, setTab] = useState('overview')
+
+  if (!deal && !loaded) {
+    return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}><ParleySpinner size={64} /></div>
+  }
 
   if (!deal) {
     return (
@@ -378,17 +385,7 @@ export default function DealDetail() {
                   <Shield size={13} /> Bond: {bondAmount} GEN ({deal.bondBps / 100}%)
                 </div>
               )}
-              {deal.state === 0 && (
-                <button className="btn-primary" style={{ width: '100%', marginTop: 16, justifyContent: 'center' }}>
-                  Take This Deal
-                </button>
-              )}
-              {deal.state === 2 && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-                  <button className="btn-primary" style={{ flex: 1, justifyContent: 'center', fontSize: 13 }}>Approve</button>
-                  <button className="btn-secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 13, color: 'var(--state-disputed)', borderColor: 'var(--state-disputed)' }}>Reject</button>
-                </div>
-              )}
+              <DealActions deal={deal} />
             </div>
 
             {/* Details */}
