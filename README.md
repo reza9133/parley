@@ -205,5 +205,6 @@ tests/direct/test_fuzz.py        random walks that must always leave the books b
 tests/direct/test_invariants.py  guided random walks: per-deal books, legal state changes and records after every call
 scripts/e2e.mjs            live scenarios on Studionet with a self-updating report
 scripts/deploy.mjs         deploys the contract
+scripts/receipt.mjs        reads the result of a decided transaction (shared by the two scripts)
 scripts/run-all.sh         lint, local tests and the live run
 ```

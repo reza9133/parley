@@ -1,6 +1,7 @@
 // Deploys contracts/parley.py to Studionet and prints the address.
 // Usage: DEPLOY_KEY=0x... node scripts/deploy.mjs      (the address is also written to .parley-address)
 import { readFileSync, writeFileSync } from "node:fs";
+import { outcome } from "./receipt.mjs";
 const sdk = await import("genlayer-js");
 const { studionet } = await import("genlayer-js/chains");
 
@@ -22,8 +23,9 @@ export async function deploy() {
     typeof client.waitForDecision === "function"
       ? await client.waitForDecision(opts)
       : await client.waitForTransactionReceipt({ ...opts, status: "ACCEPTED" });
-  const ok = sdk.isSuccessful ? sdk.isSuccessful(receipt) : !String(receipt?.txExecutionResultName ?? "").includes("ERROR");
-  if (!ok) throw new Error(`Deployment was decided as ${receipt?.txExecutionResultName ?? receipt?.statusName}`);
+  const out = outcome(receipt);
+  if (!out.known) console.log(`note: the receipt has no readable result (${out.status}); continuing to look for the contract address.`);
+  if (out.known && !out.ok) throw new Error(`Deployment was decided as ${out.status}`);
   const address = receipt?.txDataDecoded?.contractAddress ?? receipt?.data?.contract_address ?? receipt?.recipient ?? receipt?.to_address;
   if (!address) throw new Error(`Deployed, but the address is not in the receipt. Look up transaction ${hash} in the explorer.`);
   return { address, hash };

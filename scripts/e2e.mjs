@@ -27,6 +27,7 @@
 // The exit code is 1 when any check failed.
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
+import { outcome } from "./receipt.mjs";
 
 const GEN = 10n ** 18n;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -212,7 +213,7 @@ const reader = sdk.createClient({ chain: studionet });
 const read = async (fn, args = []) => JSON.parse(String(await reader.readContract({ address: CONTRACT, functionName: fn, args })));
 const row = (id) => read("get_deal", [id]);
 const stats = () => read("stats");
-const successful = (r) => (sdk.isSuccessful ? sdk.isSuccessful(r) : !String(r?.txExecutionResultName ?? "").includes("ERROR"));
+let shownRaw = false;
 
 async function quoteFees(who, call) {
   const pick = (e) => (e?.distribution && !e.gasless ? { distribution: e.distribution, feeValue: e.feeValue } : undefined);
@@ -237,8 +238,13 @@ async function send(who, fn, args, { value = 0n, label = fn, expectFail = false,
       step.hash = hash;
       const opts = { hash, retries: 400, interval: 3000 };
       const receipt = typeof who.client.waitForDecision === "function" ? await who.client.waitForDecision(opts) : await who.client.waitForTransactionReceipt({ ...opts, status: "ACCEPTED" });
-      step.ok = successful(receipt);
-      step.status = `${receipt?.statusName ?? "?"} / ${receipt?.txExecutionResultName ?? "?"}`;
+      const out = outcome(receipt);
+      step.ok = out.ok;
+      step.status = out.status;
+      if (!out.known && !shownRaw) {
+        shownRaw = true;
+        console.log(`  note: the receipt has no readable result, so this transaction counts as failed. Receipt: ${out.raw}`);
+      }
       step.receipt = receipt;
     } catch (err) {
       step.ok = false; // the node refused it before it was even sent
