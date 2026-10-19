@@ -15,6 +15,7 @@ import Deals from '@pages/Deals'
 import DealDetail from '@pages/DealDetail'
 import CreateDeal from '@pages/CreateDeal'
 import MyDeals from '@pages/MyDeals'
+import Profile from '@pages/Profile'
 import Court from '@pages/Court'
 import Docs from '@pages/Docs'
 
@@ -85,7 +86,7 @@ function Shell() {
                 <Route path="/deals/:id" element={<DealDetail />} />
                 <Route path="/create" element={<CreateDeal />} />
                 <Route path="/my-deals" element={<MyDeals />} />
-                <Route path="/profile/:address" element={<MyDeals />} />
+                <Route path="/profile/:address" element={<Profile />} />
                 <Route path="/court" element={<Court />} />
                 <Route path="/docs" element={<Docs />} />
                 <Route path="*" element={<NotFound />} />
