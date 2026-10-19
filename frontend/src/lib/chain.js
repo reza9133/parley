@@ -139,6 +139,32 @@ export async function fetchOwed(id, who) {
 export async function fetchProfile(who) {
   return read('profile_of', [who])
 }
+/** Every deal an address takes part in (newest first), read page by page. */
+export async function fetchDealsOf(who) {
+  const rows = []
+  for (let offset = 0; offset < 300; offset += 60) {
+    const page = await read('deals_of', [who, offset, 60])
+    rows.push(...page)
+    if (page.length < 60) break
+  }
+  return rows.map(toUiDeal)
+}
+/** Maps the contract's profile_of() JSON to the shape the profile page uses. */
+export function toUiProfile(p) {
+  return {
+    opened: p.opened,
+    taken: p.taken,
+    settled: p.settled,
+    delivered: p.delivered,
+    failed: p.failed,
+    defaulted: p.defaults,
+    cancelled: p.cancelled,
+    disputesWon: p.won,
+    disputesLost: p.lost,
+    volume: formatGen(p.volume, 4),
+    avgCompletion: p.average_completion == null ? null : Math.round(p.average_completion / 10) / 10,
+  }
+}
 
 // ---- writes ---------------------------------------------------------------------------------------------------------
 
